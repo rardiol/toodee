@@ -10,6 +10,9 @@ use core::cmp::Ordering;
 
 extern crate alloc;
 
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
+
 use alloc::boxed::Box;
 use alloc::vec;
 use alloc::vec::Vec;
@@ -30,6 +33,7 @@ pub type IntoIterTooDee<T> = IntoIter<T>;
 /// 
 /// Empty arrays will always have dimensions of zero.
 #[derive(Clone, Hash, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct TooDee<T> {
     data: Vec<T>,
     num_rows: usize,
