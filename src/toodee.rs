@@ -852,6 +852,12 @@ impl<T> TooDee<T> {
 
     }
 
+    pub fn get(&self, coord: Coordinate) -> Option<&T> {
+        if !((coord.1 < self.num_rows) && (coord.0 < self.num_cols)) {
+            return None
+        }
+        Some(&self.data[coord.1 * self.num_cols + coord.0])
+    }
 }
 
 /// Use `Vec`'s `IntoIter` for performance reasons.
