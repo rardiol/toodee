@@ -866,6 +866,19 @@ impl<T> TooDee<T> {
     }
 }
 
+impl<T: Default + Clone> TooDee<T> {
+    pub fn insert(&mut self, coord: Coordinate, data: T) {
+        while coord.1 >= self.num_rows {
+            self.push_row(vec![Default::default(); self.num_cols])
+        }
+        while coord.0 >= self.num_cols {
+            self.push_col(vec![Default::default(); self.num_rows])
+        }
+        self[coord] = data;
+    }
+}
+
+
 /// Use `Vec`'s `IntoIter` for performance reasons.
 /// 
 /// TODO: return type that implements `TooDeeIterator`
