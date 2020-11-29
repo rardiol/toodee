@@ -8,9 +8,9 @@ use crate::iter::TooDeeIterator;
 /// `ExactSizeIterator` (we know how many cells there are per row in a `TooDee` array).
 pub struct FlattenExact<I>
 where
-    I : ExactSizeIterator + DoubleEndedIterator + TooDeeIterator,
-    I::Item : IntoIterator,
-    <I::Item as IntoIterator>::IntoIter : DoubleEndedIterator + ExactSizeIterator,
+    I: ExactSizeIterator + DoubleEndedIterator + TooDeeIterator,
+    I::Item: IntoIterator,
+    <I::Item as IntoIterator>::IntoIter: DoubleEndedIterator + ExactSizeIterator,
 {
     iter: I,
     frontiter: Option<<I::Item as IntoIterator>::IntoIter>,
@@ -19,20 +19,24 @@ where
 
 impl<I> FlattenExact<I>
 where
-    I : ExactSizeIterator + DoubleEndedIterator + TooDeeIterator,
-    I::Item : IntoIterator,
-    <I::Item as IntoIterator>::IntoIter : DoubleEndedIterator + ExactSizeIterator,
+    I: ExactSizeIterator + DoubleEndedIterator + TooDeeIterator,
+    I::Item: IntoIterator,
+    <I::Item as IntoIterator>::IntoIter: DoubleEndedIterator + ExactSizeIterator,
 {
     pub(super) fn new(iter: I) -> FlattenExact<I> {
-        FlattenExact { iter, frontiter: None, backiter: None }
+        FlattenExact {
+            iter,
+            frontiter: None,
+            backiter: None,
+        }
     }
 }
 
 impl<I> Iterator for FlattenExact<I>
 where
-    I : ExactSizeIterator + DoubleEndedIterator + TooDeeIterator,
-    I::Item : IntoIterator,
-    <I::Item as IntoIterator>::IntoIter : DoubleEndedIterator + ExactSizeIterator,
+    I: ExactSizeIterator + DoubleEndedIterator + TooDeeIterator,
+    I::Item: IntoIterator,
+    <I::Item as IntoIterator>::IntoIter: DoubleEndedIterator + ExactSizeIterator,
 {
     type Item = <I::Item as IntoIterator>::Item;
 
@@ -50,16 +54,15 @@ where
             }
         }
     }
-    
+
     #[inline]
     fn nth(&mut self, mut n: usize) -> Option<<I::Item as IntoIterator>::Item> {
-        
         let num_cols = self.num_cols();
-        
+
         if num_cols == 0 {
             return None;
         }
-        
+
         if let Some(ref mut inner) = self.frontiter {
             if n < inner.len() {
                 return inner.nth(n);
@@ -68,7 +71,7 @@ where
                 self.frontiter = None;
             }
         }
-        
+
         let iter_skip = self.iter.len().min(n / num_cols);
         if let Some(inner) = self.iter.nth(iter_skip) {
             let mut tmp = inner.into_iter();
@@ -81,7 +84,6 @@ where
             n -= iter_skip * num_cols;
             self.backiter.as_mut()?.nth(n)
         }
-        
     }
 
     #[inline]
@@ -96,7 +98,7 @@ where
     fn last(mut self) -> Option<Self::Item> {
         self.next_back()
     }
-    
+
     #[inline]
     #[allow(clippy::toplevel_ref_arg)]
     fn fold<Acc, Fold>(self, init: Acc, ref mut fold: Fold) -> Acc
@@ -116,14 +118,13 @@ where
             .chain(self.backiter)
             .fold(init, flatten(fold))
     }
-    
 }
 
 impl<I> DoubleEndedIterator for FlattenExact<I>
 where
-    I : ExactSizeIterator + DoubleEndedIterator + TooDeeIterator,
-    I::Item : IntoIterator,
-    <I::Item as IntoIterator>::IntoIter : DoubleEndedIterator + ExactSizeIterator,
+    I: ExactSizeIterator + DoubleEndedIterator + TooDeeIterator,
+    I::Item: IntoIterator,
+    <I::Item as IntoIterator>::IntoIter: DoubleEndedIterator + ExactSizeIterator,
 {
     #[inline]
     fn next_back(&mut self) -> Option<<I::Item as IntoIterator>::Item> {
@@ -142,13 +143,12 @@ where
 
     #[inline]
     fn nth_back(&mut self, mut n: usize) -> Option<<I::Item as IntoIterator>::Item> {
-        
         let num_cols = self.num_cols();
-        
+
         if num_cols == 0 {
             return None;
         }
-        
+
         if let Some(ref mut inner) = self.backiter {
             if n < inner.len() {
                 return inner.nth_back(n);
@@ -157,7 +157,7 @@ where
                 self.backiter = None;
             }
         }
-        
+
         let iter_skip = self.iter.len().min(n / num_cols);
         if let Some(inner) = self.iter.nth_back(iter_skip) {
             let mut tmp = inner.into_iter();
@@ -170,9 +170,8 @@ where
             n -= iter_skip * num_cols;
             self.frontiter.as_mut()?.nth_back(n)
         }
-        
     }
-    
+
     #[inline]
     #[allow(clippy::toplevel_ref_arg)]
     fn rfold<Acc, Fold>(self, init: Acc, ref mut fold: Fold) -> Acc
@@ -192,21 +191,21 @@ where
             .chain(self.backiter)
             .rfold(init, flatten(fold))
     }
-    
 }
 
 impl<I> ExactSizeIterator for FlattenExact<I>
 where
-    I : ExactSizeIterator + DoubleEndedIterator + TooDeeIterator,
-    I::Item : IntoIterator,
-    <I::Item as IntoIterator>::IntoIter : DoubleEndedIterator + ExactSizeIterator,
-{}
+    I: ExactSizeIterator + DoubleEndedIterator + TooDeeIterator,
+    I::Item: IntoIterator,
+    <I::Item as IntoIterator>::IntoIter: DoubleEndedIterator + ExactSizeIterator,
+{
+}
 
 impl<I> TooDeeIterator for FlattenExact<I>
 where
-    I : ExactSizeIterator + DoubleEndedIterator + TooDeeIterator,
-    I::Item : IntoIterator,
-    <I::Item as IntoIterator>::IntoIter : DoubleEndedIterator + ExactSizeIterator,
+    I: ExactSizeIterator + DoubleEndedIterator + TooDeeIterator,
+    I::Item: IntoIterator,
+    <I::Item as IntoIterator>::IntoIter: DoubleEndedIterator + ExactSizeIterator,
 {
     fn num_cols(&self) -> usize {
         self.iter.num_cols()

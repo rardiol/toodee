@@ -2,7 +2,7 @@ use core::mem;
 use core::ops::{Index, IndexMut};
 
 /// An `Iterator` that knows how many columns it emits per row.
-pub trait TooDeeIterator : Iterator {
+pub trait TooDeeIterator: Iterator {
     /// The number of columns the iterator emits per row
     fn num_cols(&self) -> usize;
 }
@@ -19,7 +19,6 @@ pub struct Rows<'a, T> {
 }
 
 impl<'a, T> Iterator for Rows<'a, T> {
-
     type Item = &'a [T];
 
     #[inline]
@@ -55,10 +54,9 @@ impl<'a, T> Iterator for Rows<'a, T> {
     fn count(self) -> usize {
         self.len()
     }
-    
+
     #[inline]
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        
         let (start, overflow) = n.overflowing_mul(self.cols + self.skip_cols);
         if start >= self.v.len() || overflow {
             self.v = &[];
@@ -72,7 +70,7 @@ impl<'a, T> Iterator for Rows<'a, T> {
     #[inline]
     fn last(mut self) -> Option<Self::Item> {
         self.next_back()
-    }    
+    }
 }
 
 impl<'a, T> DoubleEndedIterator for Rows<'a, T> {
@@ -129,7 +127,6 @@ pub struct RowsMut<'a, T> {
 }
 
 impl<'a, T> Iterator for RowsMut<'a, T> {
-
     type Item = &'a mut [T];
 
     #[inline]
@@ -166,7 +163,7 @@ impl<'a, T> Iterator for RowsMut<'a, T> {
     fn count(self) -> usize {
         self.len()
     }
-    
+
     #[inline]
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
         let (start, overflow) = n.overflowing_mul(self.cols + self.skip_cols);
@@ -179,11 +176,11 @@ impl<'a, T> Iterator for RowsMut<'a, T> {
         }
         self.next()
     }
-    
+
     #[inline]
     fn last(mut self) -> Option<Self::Item> {
         self.next_back()
-    }    
+    }
 }
 
 impl<'a, T> DoubleEndedIterator for RowsMut<'a, T> {
@@ -209,7 +206,6 @@ impl<'a, T> DoubleEndedIterator for RowsMut<'a, T> {
 
     #[inline]
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-
         let (adj, overflow) = n.overflowing_mul(self.cols + self.skip_cols);
         if adj >= self.v.len() || overflow {
             self.v = &mut [];
@@ -242,7 +238,7 @@ pub struct Col<'a, T> {
 impl<'a, T> Index<usize> for Col<'a, T> {
     type Output = T;
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -256,7 +252,6 @@ impl<'a, T> Index<usize> for Col<'a, T> {
 }
 
 impl<'a, T> Iterator for Col<'a, T> {
-
     type Item = &'a T;
 
     #[inline]
@@ -288,10 +283,9 @@ impl<'a, T> Iterator for Col<'a, T> {
     fn count(self) -> usize {
         self.len()
     }
-    
+
     #[inline]
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        
         let (start, overflow) = n.overflowing_mul(1 + self.skip);
         if start >= self.v.len() || overflow {
             self.v = &[];
@@ -343,7 +337,6 @@ impl<'a, T> DoubleEndedIterator for Col<'a, T> {
 
 impl<T> ExactSizeIterator for Col<'_, T> {}
 
-
 /// A mutable iterator over a single column.
 #[derive(Debug)]
 pub struct ColMut<'a, T> {
@@ -354,7 +347,7 @@ pub struct ColMut<'a, T> {
 impl<'a, T> Index<usize> for ColMut<'a, T> {
     type Output = T;
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let mut toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -368,9 +361,8 @@ impl<'a, T> Index<usize> for ColMut<'a, T> {
 }
 
 impl<'a, T> IndexMut<usize> for ColMut<'a, T> {
-
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let mut toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -384,7 +376,6 @@ impl<'a, T> IndexMut<usize> for ColMut<'a, T> {
 }
 
 impl<'a, T> Iterator for ColMut<'a, T> {
-
     type Item = &'a mut T;
 
     #[inline]
@@ -417,7 +408,7 @@ impl<'a, T> Iterator for ColMut<'a, T> {
     fn count(self) -> usize {
         self.len()
     }
-    
+
     #[inline]
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
         let (start, overflow) = n.overflowing_mul(1 + self.skip);
@@ -430,11 +421,11 @@ impl<'a, T> Iterator for ColMut<'a, T> {
         }
         self.next()
     }
-    
+
     #[inline]
     fn last(mut self) -> Option<Self::Item> {
         self.next_back()
-    }    
+    }
 }
 
 impl<'a, T> DoubleEndedIterator for ColMut<'a, T> {
@@ -459,7 +450,6 @@ impl<'a, T> DoubleEndedIterator for ColMut<'a, T> {
 
     #[inline]
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-
         let (adj, overflow) = n.overflowing_mul(1 + self.skip);
         if adj >= self.v.len() || overflow {
             self.v = &mut [];
@@ -475,4 +465,3 @@ impl<'a, T> DoubleEndedIterator for ColMut<'a, T> {
 }
 
 impl<T> ExactSizeIterator for ColMut<'_, T> {}
-

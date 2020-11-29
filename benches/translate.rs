@@ -1,4 +1,4 @@
-use criterion::{BenchmarkId, criterion_group, criterion_main, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use toodee::{TooDee, TooDeeOpsMut, TranslateOps};
 
 fn translate_benchmark(c: &mut Criterion) {
@@ -7,7 +7,7 @@ fn translate_benchmark(c: &mut Criterion) {
         let size = dims.0 * dims.1;
         group.throughput(Throughput::Elements(size as u64));
         let mut toodee = TooDee::init(dims.0, dims.1, 0u32);
-        
+
         group.bench_with_input(BenchmarkId::new("translate", size), &size, |b, _| {
             b.iter(|| toodee.translate_with_wrap((5, 5)))
         });
@@ -17,7 +17,6 @@ fn translate_benchmark(c: &mut Criterion) {
         group.bench_with_input(BenchmarkId::new("view_translate", size), &size, |b, _| {
             b.iter(|| view.translate_with_wrap((5, 5)))
         });
-
     }
 }
 
@@ -27,7 +26,7 @@ fn flip_benchmark(c: &mut Criterion) {
         let size = dims.0 * dims.1;
         group.throughput(Throughput::Elements(size as u64));
         let mut toodee = TooDee::init(dims.0, dims.1, 0u32);
-        
+
         group.bench_with_input(BenchmarkId::new("flip_rows", size), &size, |b, _| {
             b.iter(|| toodee.flip_rows())
         });

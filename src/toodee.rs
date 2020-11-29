@@ -1,27 +1,27 @@
-use core::fmt;
-use core::fmt::{ Formatter, Debug };
-use core::ops::{Index, IndexMut};
 use core::borrow::Borrow;
-use core::iter::IntoIterator;
-use core::ptr::{self, NonNull};
-use core::mem;
-use core::slice;
 use core::cmp::Ordering;
+use core::fmt;
+use core::fmt::{Debug, Formatter};
+use core::iter::IntoIterator;
+use core::mem;
+use core::ops::{Index, IndexMut};
+use core::ptr::{self, NonNull};
+use core::slice;
 
 extern crate alloc;
 
 #[cfg(feature = "serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use alloc::boxed::Box;
 use alloc::vec;
-use alloc::vec::Vec;
 use alloc::vec::Drain;
 use alloc::vec::IntoIter;
+use alloc::vec::Vec;
 
 use crate::iter::*;
-use crate::view::*;
 use crate::ops::*;
+use crate::view::*;
 
 /// DrainRow type alias for future-proofing.
 pub type DrainRow<'a, T> = Drain<'a, T>;
@@ -30,7 +30,7 @@ pub type DrainRow<'a, T> = Drain<'a, T>;
 pub type IntoIterTooDee<T> = IntoIter<T>;
 
 /// Represents a two-dimensional array.
-/// 
+///
 /// Empty arrays will always have dimensions of zero.
 #[derive(Clone, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -43,9 +43,8 @@ pub struct TooDee<T> {
 /// Custom `Default` implementation because `T` does not need to implement `Default`.
 /// See rust issue [#26925](https://github.com/rust-lang/rust/issues/26925)
 impl<T> Default for TooDee<T> {
-    
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::TooDee;
     /// struct Abc { }
@@ -53,9 +52,9 @@ impl<T> Default for TooDee<T> {
     /// ```
     fn default() -> Self {
         TooDee {
-            data : Vec::default(),
-            num_rows : 0,
-            num_cols : 0,
+            data: Vec::default(),
+            num_rows: 0,
+            num_cols: 0,
         }
     }
 }
@@ -63,7 +62,7 @@ impl<T> Default for TooDee<T> {
 impl<T> Index<usize> for TooDee<T> {
     type Output = [T];
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -74,16 +73,14 @@ impl<T> Index<usize> for TooDee<T> {
         assert!(row < self.num_rows);
         let start = row * self.num_cols;
         // can access the element unchecked because the above assertion holds
-        unsafe {
-            self.data.get_unchecked(start..start + self.num_cols)
-        }
+        unsafe { self.data.get_unchecked(start..start + self.num_cols) }
     }
 }
 
 impl<T> Index<Coordinate> for TooDee<T> {
     type Output = T;
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -93,17 +90,13 @@ impl<T> Index<Coordinate> for TooDee<T> {
         assert!(coord.1 < self.num_rows);
         assert!(coord.0 < self.num_cols);
         // can access the element unchecked because the above assertions hold
-        unsafe {
-            self.data.get_unchecked(coord.1 * self.num_cols + coord.0)
-        }
+        unsafe { self.data.get_unchecked(coord.1 * self.num_cols + coord.0) }
     }
 }
 
-
 impl<T> IndexMut<usize> for TooDee<T> {
-
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let mut toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -114,16 +107,13 @@ impl<T> IndexMut<usize> for TooDee<T> {
         assert!(row < self.num_rows);
         let start = row * self.num_cols;
         // can access the element unchecked because the above assertion holds
-        unsafe {
-            self.data.get_unchecked_mut(start..start + self.num_cols)
-        }
+        unsafe { self.data.get_unchecked_mut(start..start + self.num_cols) }
     }
 }
 
 impl<T> IndexMut<Coordinate> for TooDee<T> {
-
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -134,15 +124,15 @@ impl<T> IndexMut<Coordinate> for TooDee<T> {
         assert!(coord.0 < self.num_cols);
         // can access the element unchecked because the above assertions hold
         unsafe {
-            self.data.get_unchecked_mut(coord.1 * self.num_cols + coord.0)
+            self.data
+                .get_unchecked_mut(coord.1 * self.num_cols + coord.0)
         }
     }
 }
 
 impl<T> TooDeeOps<T> for TooDee<T> {
-    
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -153,7 +143,7 @@ impl<T> TooDeeOps<T> for TooDee<T> {
     }
 
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -164,7 +154,7 @@ impl<T> TooDeeOps<T> for TooDee<T> {
     }
 
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps};
     /// let toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -173,9 +163,9 @@ impl<T> TooDeeOps<T> for TooDee<T> {
     fn bounds(&self) -> (Coordinate, Coordinate) {
         ((0, 0), (self.num_cols, self.num_rows))
     }
-    
+
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps};
     /// let toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -186,9 +176,9 @@ impl<T> TooDeeOps<T> for TooDee<T> {
     fn view(&self, start: Coordinate, end: Coordinate) -> TooDeeView<'_, T> {
         TooDeeView::from_toodee(start, end, self)
     }
-    
+
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let mut toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -199,14 +189,14 @@ impl<T> TooDeeOps<T> for TooDee<T> {
     /// ```
     fn rows(&self) -> Rows<'_, T> {
         Rows {
-            v : &self.data,
-            cols : self.num_cols,
-            skip_cols : 0,
+            v: &self.data,
+            cols: self.num_cols,
+            skip_cols: 0,
         }
     }
-    
+
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let mut toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -217,14 +207,16 @@ impl<T> TooDeeOps<T> for TooDee<T> {
         assert!(col < self.num_cols);
         unsafe {
             Col {
-                v : self.data.get_unchecked(col..self.data.len() - self.num_cols + col + 1),
-                skip : self.num_cols - 1,
+                v: self
+                    .data
+                    .get_unchecked(col..self.data.len() - self.num_cols + col + 1),
+                skip: self.num_cols - 1,
             }
         }
     }
 
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// unsafe {
@@ -239,7 +231,7 @@ impl<T> TooDeeOps<T> for TooDee<T> {
     }
 
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -250,13 +242,11 @@ impl<T> TooDeeOps<T> for TooDee<T> {
     unsafe fn get_unchecked(&self, coord: Coordinate) -> &T {
         self.data.get_unchecked(coord.1 * self.num_cols + coord.0)
     }
-
 }
 
 impl<T> TooDeeOpsMut<T> for TooDee<T> {
-    
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let mut toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -267,9 +257,9 @@ impl<T> TooDeeOpsMut<T> for TooDee<T> {
     fn view_mut(&mut self, start: Coordinate, end: Coordinate) -> TooDeeViewMut<'_, T> {
         TooDeeViewMut::from_toodee(start, end, self)
     }
-    
+
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let mut toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -280,14 +270,14 @@ impl<T> TooDeeOpsMut<T> for TooDee<T> {
     /// ```
     fn rows_mut(&mut self) -> RowsMut<'_, T> {
         RowsMut {
-            v : &mut self.data,
-            cols : self.num_cols,
-            skip_cols : 0,
+            v: &mut self.data,
+            cols: self.num_cols,
+            skip_cols: 0,
         }
     }
-    
+
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let mut toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -299,14 +289,16 @@ impl<T> TooDeeOpsMut<T> for TooDee<T> {
         let dlen = self.data.len();
         unsafe {
             ColMut {
-                v : self.data.get_unchecked_mut(col..dlen - self.num_cols + col + 1),
-                skip : self.num_cols - 1,
+                v: self
+                    .data
+                    .get_unchecked_mut(col..dlen - self.num_cols + col + 1),
+                skip: self.num_cols - 1,
             }
         }
     }
-    
+
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let mut toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -316,7 +308,8 @@ impl<T> TooDeeOpsMut<T> for TooDee<T> {
     fn fill<V>(&mut self, fill: V)
     where
         V: Borrow<T>,
-        T: Clone {
+        T: Clone,
+    {
         let value = fill.borrow();
         for v in self.data.iter_mut() {
             v.clone_from(value);
@@ -324,13 +317,13 @@ impl<T> TooDeeOpsMut<T> for TooDee<T> {
     }
 
     /// Swap/exchange the data between two rows.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if either row index is out of bounds.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let mut toodee : TooDee<u32> = TooDee::init(10, 5, 42u32);
@@ -341,11 +334,11 @@ impl<T> TooDeeOpsMut<T> for TooDee<T> {
     /// ```
     fn swap_rows(&mut self, mut r1: usize, mut r2: usize) {
         match r1.cmp(&r2) {
-            Ordering::Less => {},
+            Ordering::Less => {}
             Ordering::Greater => {
                 // force r1 < r2
                 core::mem::swap(&mut r1, &mut r2);
-            },
+            }
             Ordering::Equal => {
                 // swapping a row with itself
                 return;
@@ -354,7 +347,10 @@ impl<T> TooDeeOpsMut<T> for TooDee<T> {
         assert!(r2 < self.num_rows);
         let num_cols = self.num_cols;
         unsafe {
-            let (first, rest) = self.data.get_unchecked_mut(r1 * num_cols..).split_at_mut(num_cols);
+            let (first, rest) = self
+                .data
+                .get_unchecked_mut(r1 * num_cols..)
+                .split_at_mut(num_cols);
             let snd_idx = (r2 - r1 - 1) * num_cols;
             let second = rest.get_unchecked_mut(snd_idx..snd_idx + num_cols);
             // Both slices are guaranteed to have the same length
@@ -364,9 +360,9 @@ impl<T> TooDeeOpsMut<T> for TooDee<T> {
             ptr::swap_nonoverlapping(first.as_mut_ptr(), second.as_mut_ptr(), num_cols);
         }
     }
-    
+
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// unsafe {
@@ -381,7 +377,7 @@ impl<T> TooDeeOpsMut<T> for TooDee<T> {
     }
 
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps,TooDeeOpsMut};
     /// let mut toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -390,23 +386,22 @@ impl<T> TooDeeOpsMut<T> for TooDee<T> {
     /// }
     /// ```
     unsafe fn get_unchecked_mut(&mut self, coord: Coordinate) -> &mut T {
-        self.data.get_unchecked_mut(coord.1 * self.num_cols + coord.0)
+        self.data
+            .get_unchecked_mut(coord.1 * self.num_cols + coord.0)
     }
-
 }
 
 impl<T> TooDee<T> {
-
     /// Create a new `TooDee` array of the specified dimensions, and fill it with
     /// the type's default value.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if one of the dimensions is zero but the other is non-zero. This
     /// is to enforce the rule that empty arrays have no dimensions.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps};
     /// let toodee : TooDee<u32> = TooDee::new(10, 5);
@@ -415,14 +410,16 @@ impl<T> TooDee<T> {
     /// assert_eq!(toodee[0][0], 0);
     /// ```
     pub fn new(num_cols: usize, num_rows: usize) -> TooDee<T>
-    where T: Default + Clone {
+    where
+        T: Default + Clone,
+    {
         if num_cols == 0 || num_rows == 0 {
             assert_eq!(num_rows, num_cols);
         }
         let len = num_rows * num_cols;
         let v = vec![T::default(); len];
         TooDee {
-            data : v,
+            data: v,
             num_cols,
             num_rows,
         }
@@ -430,14 +427,14 @@ impl<T> TooDee<T> {
 
     /// Create a new `TooDee` array of the specified dimensions, and fill it with
     /// an initial value.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if one of the dimensions is zero but the other is non-zero. This
     /// is to enforce the rule that empty arrays have no dimensions.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps};
     /// let toodee = TooDee::init(10, 5, 42u32);
@@ -446,23 +443,25 @@ impl<T> TooDee<T> {
     /// assert_eq!(toodee[0][0], 42);
     /// ```
     pub fn init(num_cols: usize, num_rows: usize, init_value: T) -> TooDee<T>
-    where T: Clone {
+    where
+        T: Clone,
+    {
         if num_cols == 0 || num_rows == 0 {
             assert_eq!(num_rows, num_cols);
         }
         let len = num_rows * num_cols;
         let v = vec![init_value; len];
         TooDee {
-            data : v,
+            data: v,
             num_cols,
             num_rows,
         }
     }
-    
+
     /// Returns the element capacity of the underlying `Vec`.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::TooDee;
     /// let v = vec![42u32; 10];
@@ -472,11 +471,11 @@ impl<T> TooDee<T> {
     pub fn capacity(&self) -> usize {
         self.data.capacity()
     }
-    
+
     /// Constructs a new, empty `TooDee<T>` with the specified element capacity.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::TooDee;
     /// let toodee : TooDee<u32> = TooDee::with_capacity(50);
@@ -484,17 +483,17 @@ impl<T> TooDee<T> {
     /// ```
     pub fn with_capacity(capacity: usize) -> TooDee<T> {
         TooDee {
-            data     : Vec::with_capacity(capacity),
-            num_cols : 0,
-            num_rows : 0,
+            data: Vec::with_capacity(capacity),
+            num_cols: 0,
+            num_rows: 0,
         }
     }
 
     /// Reserves the minimum capacity for at least `additional` more elements to be inserted
     /// into the `TooDee<T>`.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::TooDee;
     /// let mut toodee : TooDee<u32> = TooDee::default();
@@ -504,12 +503,12 @@ impl<T> TooDee<T> {
     pub fn reserve_exact(&mut self, capacity: usize) {
         self.data.reserve_exact(capacity);
     }
-    
+
     /// Reserves capacity for at least `additional` more elements to be inserted
     /// in the given `TooDee<T>`.    
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::TooDee;
     /// let mut toodee : TooDee<u32> = TooDee::default();
@@ -521,9 +520,9 @@ impl<T> TooDee<T> {
     }
 
     /// Shrinks the capacity of the underlying vector as much as possible.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::TooDee;
     /// let mut toodee : TooDee<u32> = TooDee::with_capacity(50);
@@ -533,17 +532,17 @@ impl<T> TooDee<T> {
     pub fn shrink_to_fit(&mut self) {
         self.data.shrink_to_fit();
     }
-    
+
     /// Create a new `TooDee` array using the provided vector. The vector's length
     /// must match the dimensions of the array.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if one of the dimensions is zero but the other is non-zero. This
     /// is to enforce the rule that empty arrays have no dimensions.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps};
     /// let v = vec![42u32; 10];
@@ -558,17 +557,17 @@ impl<T> TooDee<T> {
         }
         assert_eq!(num_cols * num_rows, v.len());
         TooDee {
-            data : v,
+            data: v,
             num_cols,
             num_rows,
         }
     }
-    
+
     /// Create a new `TooDee` array using the provided boxed slice. The slice's length
     /// must match the dimensions of the array.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps};
     /// let v = vec![42u32; 10];
@@ -580,11 +579,11 @@ impl<T> TooDee<T> {
     pub fn from_box(num_cols: usize, num_rows: usize, b: Box<[T]>) -> TooDee<T> {
         TooDee::from_vec(num_cols, num_rows, b.into_vec())
     }
-    
+
     /// Returns a reference to the raw array data
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps};
     /// let v = vec![42u32; 10];
@@ -596,9 +595,9 @@ impl<T> TooDee<T> {
     }
 
     /// Returns a mutable reference to the raw array data
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps};
     /// let v = vec![42u32; 10];
@@ -608,14 +607,13 @@ impl<T> TooDee<T> {
     pub fn data_mut(&mut self) -> &mut [T] {
         &mut self.data
     }
-    
-    
+
     /// Clears the array, removing all values and zeroing the number of columns and rows.
     ///
     /// Note that this method has no effect on the allocated capacity of the array.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps};
     /// let v = vec![42u32; 10];
@@ -630,11 +628,11 @@ impl<T> TooDee<T> {
         self.num_rows = 0;
         self.data.clear();
     }
-    
+
     /// Removes the last row from the array and returns it as a `Drain`, or `None` if it is empty.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps};
     /// let v = vec![42u32; 15];
@@ -653,25 +651,27 @@ impl<T> TooDee<T> {
             Some(self.remove_row(self.num_rows - 1))
         }
     }
-    
+
     /// Appends a new row to the array.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if the data's length doesn't match the length of existing rows (if any).
-    pub fn push_row<I>(&mut self, data: impl IntoIterator<Item=T, IntoIter=I>)
-    where I : Iterator<Item=T> + ExactSizeIterator
+    pub fn push_row<I>(&mut self, data: impl IntoIterator<Item = T, IntoIter = I>)
+    where
+        I: Iterator<Item = T> + ExactSizeIterator,
     {
         self.insert_row(self.num_rows, data);
     }
 
     /// Inserts new `data` into the array at the specified `row`
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if the data's length doesn't match the length of existing rows (if any).
-    pub fn insert_row<I>(&mut self, index: usize, data: impl IntoIterator<Item=T, IntoIter=I>)
-    where I : Iterator<Item=T> + ExactSizeIterator
+    pub fn insert_row<I>(&mut self, index: usize, data: impl IntoIterator<Item = T, IntoIter = I>)
+    where
+        I: Iterator<Item = T> + ExactSizeIterator,
     {
         assert!(index <= self.num_rows);
         let iter = data.into_iter();
@@ -680,7 +680,7 @@ impl<T> TooDee<T> {
         } else {
             assert_eq!(self.num_cols, iter.len());
         }
-        
+
         self.reserve(self.num_cols);
 
         let start = index * self.num_cols;
@@ -698,17 +698,16 @@ impl<T> TooDee<T> {
 
         // update the number of rows
         self.num_rows += 1;
-
     }
 
     /// Removes the specified row from the array and returns it as a `Drain`
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if the specified row index is out of bounds.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps};
     /// let v = vec![42u32; 15];
@@ -720,8 +719,7 @@ impl<T> TooDee<T> {
     /// assert_eq!(toodee.num_cols(), 5);
     /// assert_eq!(toodee.num_rows(), 2);
     /// ```
-    pub fn remove_row(&mut self, index : usize) -> DrainRow<'_, T>
-    {
+    pub fn remove_row(&mut self, index: usize) -> DrainRow<'_, T> {
         assert!(index < self.num_rows);
         let start = index * self.num_cols;
         let drain = self.data.drain(start..start + self.num_cols);
@@ -733,9 +731,9 @@ impl<T> TooDee<T> {
     }
 
     /// Removes the last column from the array and returns it as a `Drain`, or `None` if it is empty.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps};
     /// let v = vec![42u32; 15];
@@ -754,26 +752,27 @@ impl<T> TooDee<T> {
             Some(self.remove_col(self.num_cols - 1))
         }
     }
-    
+
     /// Appends a new column to the array.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if the data's length doesn't match the length of existing rows (if any).
-    pub fn push_col<I>(&mut self, data: impl IntoIterator<Item=T, IntoIter=I>)
-    where I : Iterator<Item=T> + ExactSizeIterator + DoubleEndedIterator
+    pub fn push_col<I>(&mut self, data: impl IntoIterator<Item = T, IntoIter = I>)
+    where
+        I: Iterator<Item = T> + ExactSizeIterator + DoubleEndedIterator,
     {
         self.insert_col(self.num_cols, data);
     }
 
     /// Removes the specified column from the array and returns it as a `Drain`
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if the specified column index is out of bounds.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use toodee::{TooDee,TooDeeOps};
     /// let v = vec![42u32; 15];
@@ -785,8 +784,7 @@ impl<T> TooDee<T> {
     /// assert_eq!(toodee.num_cols(), 4);
     /// assert_eq!(toodee.num_rows(), 3);
     /// ```
-    pub fn remove_col(&mut self, index: usize) -> DrainCol<'_, T>
-    {
+    pub fn remove_col(&mut self, index: usize) -> DrainCol<'_, T> {
         assert!(index < self.num_cols);
 
         let v = &mut self.data;
@@ -796,23 +794,24 @@ impl<T> TooDee<T> {
             // set the vec length to 0 to amplify any leaks
             v.set_len(0);
             DrainCol {
-               iter : Col {
-                   skip : num_cols - 1,
-                   v : slice::from_raw_parts_mut(v.as_mut_ptr().add(index), slice_len),
-               },
-               col : index,
-               toodee : NonNull::from(self),
+                iter: Col {
+                    skip: num_cols - 1,
+                    v: slice::from_raw_parts_mut(v.as_mut_ptr().add(index), slice_len),
+                },
+                col: index,
+                toodee: NonNull::from(self),
             }
         }
     }
 
     /// Inserts new `data` into the array at the specified `col`.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if the data's length doesn't match the length of existing columns (if any).
-    pub fn insert_col<I>(&mut self, index: usize, data: impl IntoIterator<Item=T, IntoIter=I>)
-    where I : Iterator<Item=T> + ExactSizeIterator + DoubleEndedIterator
+    pub fn insert_col<I>(&mut self, index: usize, data: impl IntoIterator<Item = T, IntoIter = I>)
+    where
+        I: Iterator<Item = T> + ExactSizeIterator + DoubleEndedIterator,
     {
         assert!(index <= self.num_cols);
         let iter = data.into_iter();
@@ -821,9 +820,9 @@ impl<T> TooDee<T> {
         } else {
             assert_eq!(self.num_rows, iter.len());
         }
-        
+
         self.reserve(self.num_rows);
-        
+
         let old_len = self.data.len();
         let new_len = old_len + self.num_rows;
         let suffix_len = self.num_cols - index;
@@ -849,12 +848,11 @@ impl<T> TooDee<T> {
 
         // update the number of columns
         self.num_cols += 1;
-
     }
 
     pub fn get(&self, coord: Coordinate) -> Option<&T> {
         if !((coord.1 < self.num_rows) && (coord.0 < self.num_cols)) {
-            return None
+            return None;
         }
         Some(&self.data[coord.1 * self.num_cols + coord.0])
     }
@@ -878,9 +876,8 @@ impl<T: Default + Clone> TooDee<T> {
     }
 }
 
-
 /// Use `Vec`'s `IntoIter` for performance reasons.
-/// 
+///
 /// TODO: return type that implements `TooDeeIterator`
 impl<T> IntoIterator for TooDee<T> {
     type Item = T;
@@ -943,13 +940,19 @@ impl<T> AsRef<Vec<T>> for TooDee<T> {
     }
 }
 
-impl<T> Debug for TooDee<T> where T : Debug {
+impl<T> Debug for TooDee<T>
+where
+    T: Debug,
+{
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.rows()).finish()
     }
 }
 
-impl<T> From<TooDeeView<'_, T>> for TooDee<T> where T : Clone {
+impl<T> From<TooDeeView<'_, T>> for TooDee<T>
+where
+    T: Clone,
+{
     fn from(view: TooDeeView<'_, T>) -> Self {
         let num_cols = view.num_cols();
         let num_rows = view.num_rows();
@@ -958,14 +961,17 @@ impl<T> From<TooDeeView<'_, T>> for TooDee<T> where T : Clone {
             v.extend_from_slice(r);
         }
         TooDee {
-            data : v,
+            data: v,
             num_cols,
             num_rows,
         }
     }
 }
 
-impl<T> From<TooDeeViewMut<'_, T>> for TooDee<T> where T : Clone {
+impl<T> From<TooDeeViewMut<'_, T>> for TooDee<T>
+where
+    T: Clone,
+{
     fn from(view: TooDeeViewMut<'_, T>) -> Self {
         let num_cols = view.num_cols();
         let num_rows = view.num_rows();
@@ -974,7 +980,7 @@ impl<T> From<TooDeeViewMut<'_, T>> for TooDee<T> where T : Clone {
             v.extend_from_slice(r);
         }
         TooDee {
-            data : v,
+            data: v,
             num_cols,
             num_rows,
         }
@@ -1001,7 +1007,9 @@ impl<T> Iterator for DrainCol<'_, T> {
 
     #[inline]
     fn next(&mut self) -> Option<T> {
-        self.iter.next().map(|elt| unsafe { ptr::read(elt as *const _) })
+        self.iter
+            .next()
+            .map(|elt| unsafe { ptr::read(elt as *const _) })
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -1012,14 +1020,15 @@ impl<T> Iterator for DrainCol<'_, T> {
 impl<T> DoubleEndedIterator for DrainCol<'_, T> {
     #[inline]
     fn next_back(&mut self) -> Option<T> {
-        self.iter.next_back().map(|elt| unsafe { ptr::read(elt as *const _) })
+        self.iter
+            .next_back()
+            .map(|elt| unsafe { ptr::read(elt as *const _) })
     }
 }
 
-impl<T> ExactSizeIterator for DrainCol<'_, T> { }
+impl<T> ExactSizeIterator for DrainCol<'_, T> {}
 
 impl<T> Drop for DrainCol<'_, T> {
-
     fn drop(&mut self) {
         /// Continues dropping the remaining elements in the `DrainCol`, then repositions the
         /// un-`Drain`ed elements to restore the original `TooDee`.
@@ -1027,13 +1036,11 @@ impl<T> Drop for DrainCol<'_, T> {
 
         impl<'r, 'a, T> Drop for DropGuard<'r, 'a, T> {
             fn drop(&mut self) {
-
                 self.0.for_each(drop);
-                
+
                 let col = self.0.col;
 
                 unsafe {
-                    
                     let toodee = self.0.toodee.as_mut();
 
                     let vec = &mut toodee.data;
@@ -1042,17 +1049,17 @@ impl<T> Drop for DrainCol<'_, T> {
                     let mut src = dest.add(1);
                     let orig_cols = toodee.num_cols;
                     let new_cols = orig_cols - 1;
-                    
+
                     let num_rows = toodee.num_rows;
-                    
+
                     for _ in 1..num_rows {
                         ptr::copy(src, dest, new_cols);
                         src = src.add(orig_cols);
                         dest = dest.add(new_cols);
                     }
-                    
+
                     ptr::copy(src, dest, orig_cols - col);
-                    
+
                     toodee.num_cols -= 1;
                     if toodee.num_cols == 0 {
                         toodee.num_rows = 0;
@@ -1061,7 +1068,6 @@ impl<T> Drop for DrainCol<'_, T> {
                     // Set the new length based on the col/row counts
                     vec.set_len(toodee.num_cols * toodee.num_rows);
                 }
-                
             }
         }
 
@@ -1076,4 +1082,3 @@ impl<T> Drop for DrainCol<'_, T> {
         DropGuard(self);
     }
 }
-
