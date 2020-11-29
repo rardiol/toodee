@@ -858,6 +858,12 @@ impl<T> TooDee<T> {
         }
         Some(&self.data[coord.1 * self.num_cols + coord.0])
     }
+
+    pub fn map<T2: Default + Clone, F: FnMut(T) -> T2>(self, mut f: F) -> TooDee<T2> {
+        let mut new = TooDee::new(self.num_cols, self.num_rows);
+        new.data = self.data.into_iter().map(|x| f(x)).collect();
+        new
+    }
 }
 
 /// Use `Vec`'s `IntoIter` for performance reasons.
