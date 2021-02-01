@@ -14,6 +14,7 @@ mod iter;
 mod ops;
 mod toodee;
 mod view;
+mod map;
 
 #[cfg(feature = "sort")]
 mod sort;
@@ -44,3 +45,4 @@ pub use crate::iter::*;
 pub use crate::ops::*;
 pub use crate::toodee::*;
 pub use crate::view::*;
+pub use crate::map::*;
